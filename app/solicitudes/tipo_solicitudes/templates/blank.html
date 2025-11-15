@@ -67,9 +67,15 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'lista_tipo_solicitudes' %}"
                 ><i class="fas fa-tachometer-alt"></i
-                ><span>Lista Tipo Solicitudes</span></a
+                ><span>Tipo Solicitudes</span></a
               >
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'crear_formulario' %}"
+              ><i class="fas fa-user"></i
+                ><span>Crear formulario solicitud</span></a
+                >
+              </li>
             {% if user.is_authenticated and user.puede_atender_solicitudes %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'listar_solicitudes' %}"

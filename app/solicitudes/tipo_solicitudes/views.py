@@ -15,8 +15,8 @@ from reportlab.lib.enums import TA_CENTER
 import matplotlib
 matplotlib.use('Agg')  # Backend sin GUI
 import matplotlib.pyplot as plt
-from .forms import FormTipoSolicitud
-from .models import ESTATUS, RESPOSABLES, SeguimientoSolicitud, Solicitud, TipoSolicitud
+from .forms import FormArchivoAdjunto, FormFormularioSolicitud, FormSolicitud, FormTipoSolicitud
+from .models import ESTATUS, RESPOSABLES, SeguimientoSolicitud, Solicitud, TipoSolicitud, ArchivoAdjunto, CampoFormulario, FormularioSolicitud, RespuestaCampo
 from .funcionalidad import FuncionesAvanzadas
 
 def bienvenida(request):
@@ -278,3 +278,20 @@ def metricas(request):
     }
 
     return render(request, "tipo_solicitudes/metricas.html", context)
+
+def generar_folio_unico():
+    import uuid
+    return f"FOLIO-{uuid.uuid4().hex[:8].upper()}"
+
+def crear_formulario(request):
+    if request.method == 'POST':
+        form = FormFormularioSolicitud(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('crear_formulario')
+    else:
+        form = FormFormularioSolicitud()
+    context = {
+        'form': form
+    }
+    return render(request, 'crear_formulario_solicitud.html', context)
