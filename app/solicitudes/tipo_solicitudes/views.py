@@ -8,6 +8,9 @@ from django.http import HttpResponse
 from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.db.models import Count
+from django.shortcuts import get_object_or_404, render, redirect
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -20,6 +23,7 @@ import matplotlib.pyplot as plt
 from .forms import FormArchivoAdjunto, FormCampoFormulario, FormFormularioSolicitud, FormSolicitud, FormTipoSolicitud
 from .models import ESTATUS, RESPOSABLES, SeguimientoSolicitud, Solicitud, TipoSolicitud, ArchivoAdjunto, CampoFormulario, FormularioSolicitud, RespuestaCampo
 from .funcionalidad import FuncionesAvanzadas
+from django.db.models import Max
 
 def bienvenida(request):
     return render(request, 'bienvenida.html')
@@ -45,9 +49,6 @@ def agregar(request):
         form = FormTipoSolicitud()
 
     return render(request, 'agregar_solicitud.html', {'form': form})
-
-
-@login_required
 def crear_solicitud(request, tipo_id):
     tipo = get_object_or_404(TipoSolicitud, id=tipo_id)
     formulario = tipo.formulario
@@ -90,13 +91,11 @@ def crear_solicitud(request, tipo_id):
     })
 
 
-@login_required
 def mis_solicitudes(request):
     solicitudes = Solicitud.objects.filter(usuario=request.user).order_by('-fecha_creacion')
     return render(request, 'solicitudes/mis_solicitudes.html', {'solicitudes': solicitudes})
 
 
-@login_required
 def detalle_solicitud(request, solicitud_id):
     solicitud = get_object_or_404(Solicitud, id=solicitud_id, usuario=request.user)
 
@@ -108,7 +107,6 @@ def detalle_solicitud(request, solicitud_id):
         'respuestas': respuestas,
         'seguimientos': seguimientos
     })
-
 
 def obtener_solicitudes(request):
     solicitudes = Solicitud.objects.all()
