@@ -29,6 +29,10 @@ README_DSM5.md
 REPORTE_COMPLEJIDAD_DSM5.md
 RESUMEN_EJECUTIVO_DSM5.md
 
+# Ignorar todos los archivos .md excepto README.md
+*.md
+!README.md
+
 # JMeter y archivos de pruebas de carga
 JMX/
 *.jmx

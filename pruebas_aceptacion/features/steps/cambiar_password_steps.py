@@ -1,7 +1,6 @@
 from behave import given, when, then
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from selenium.webdriver.common.by import By
 
 Usuario = get_user_model()
 
@@ -27,8 +26,8 @@ def step_admin_debe_cambiar_password(context):
     context.admin_user.save()
 
 
-@given(
-    'que existe el usuario admin con password "{password}" que debe cambiar contraseña')
+@given('que existe el usuario admin con password "{password}" '
+       'que debe cambiar contraseña')
 def step_admin_con_password_debe_cambiar(context, password):
     """Crea admin con contraseña específica y debe_cambiar_password=True"""
     Usuario.objects.filter(username='admin').delete()
@@ -139,11 +138,13 @@ def step_clic_cambiar_password(context):
 
 # ==================== THEN ====================
 
-@then('ve un mensaje informativo con las credenciales predeterminadas')
+@then('ve un mensaje informativo con las credenciales '
+      'predeterminadas')
 def step_ve_mensaje_credenciales(context):
     """Verifica que se muestre el mensaje con credenciales"""
     content = context.response.content.decode('utf-8')
-    assert 'Primera vez en el sistema' in content or 'administrador predeterminado' in content
+    assert ('Primera vez en el sistema' in content or
+            'administrador predeterminado' in content)
 
 
 @then('el mensaje muestra "{texto}"')
@@ -240,7 +241,8 @@ def step_error_password_comun(context):
     assert 'común' in content.lower() or 'common' in content.lower()
 
 
-@then('ve un mensaje de error indicando que la contraseña debe tener al menos 8 caracteres')
+@then('ve un mensaje de error indicando que la contraseña debe '
+      'tener al menos 8 caracteres')
 def step_error_password_corta(context):
     """Verifica error de contraseña corta"""
     content = context.response.content.decode('utf-8')
@@ -254,32 +256,37 @@ def step_permanece_cambiar_password(context):
     assert 'cambiar-password' in context.response.request['PATH_INFO']
 
 
-@then('ve un mensaje de error indicando que las contraseñas no coinciden')
+@then('ve un mensaje de error indicando que las contraseñas '
+      'no coinciden')
 def step_error_passwords_no_coinciden(context):
     """Verifica error de contraseñas no coincidentes"""
     content = context.response.content.decode('utf-8')
     assert 'coincid' in content.lower() or "didn't match" in content.lower()
 
 
-@then('ve un mensaje de error indicando que la contraseña actual es incorrecta')
+@then('ve un mensaje de error indicando que la contraseña actual '
+      'es incorrecta')
 def step_error_password_actual_incorrecta(context):
     """Verifica error de contraseña actual incorrecta"""
     content = context.response.content.decode('utf-8')
     assert 'incorrecta' in content.lower() or 'incorrect' in content.lower()
 
 
-@then('ve un mensaje de error indicando que la contraseña es muy similar al nombre de usuario')
+@then('ve un mensaje de error indicando que la contraseña es muy '
+      'similar al nombre de usuario')
 def step_error_password_similar_username(context):
     """Verifica error de contraseña similar al username"""
     content = context.response.content.decode('utf-8')
     assert 'similar' in content.lower() or 'usuario' in content.lower()
 
 
-@then('es redirigido automáticamente a la página de cambio de contraseña')
+@then('es redirigido automáticamente a la página de cambio de '
+      'contraseña')
 def step_redirigido_auto_cambiar_password(context):
     """Verifica redirección automática a cambio de contraseña"""
-    assert context.response.redirect_chain[-1][0] == reverse('solicitudes_app:cambiar_password') or \
-        'cambiar-password' in context.response.redirect_chain[-1][0]
+    expected = reverse('solicitudes_app:cambiar_password')
+    assert (context.response.redirect_chain[-1][0] == expected or
+            'cambiar-password' in context.response.redirect_chain[-1][0])
 
 
 @then('ve un mensaje indicando que debe cambiar su contraseña por seguridad')
