@@ -4,7 +4,8 @@ from django.urls import reverse
 from solicitudes_app.models import Usuario
 
 
-@given('que existe un administrador con username "{username}" y password "{password}"')
+@given(
+    'que existe un administrador con username "{username}" y password "{password}"')
 def step_crear_administrador(context, username, password):
     context.admin = Usuario.objects.create_user(
         username=username,
@@ -38,7 +39,8 @@ def step_crear_varios_usuarios(context):
 
 @when('el administrador visita la página de gestión de usuarios')
 def step_visitar_gestion_usuarios(context):
-    context.response = context.client.get(reverse('solicitudes_app:lista_usuarios'), follow=True)
+    context.response = context.client.get(
+        reverse('solicitudes_app:lista_usuarios'), follow=True)
 
 
 @then('ve una lista con {count:d} usuarios')
@@ -55,8 +57,9 @@ def step_ver_usuario_en_lista(context, username):
     # Verificar que la página cargó correctamente
     assert context.response.status_code == 200, f"Página no cargó correctamente: {context.response.status_code}"
     # Verificar que el usuario existe en la DB
-    assert Usuario.objects.filter(username=username).exists(), f"Usuario {username} no existe en la base de datos"
-    
+    assert Usuario.objects.filter(username=username).exists(
+    ), f"Usuario {username} no existe en la base de datos"
+
     # Debug: mostrar información sobre la respuesta
     print(f"\n=== DEBUG step_ver_usuario_en_lista ===")
     print(f"Buscando usuario: {username}")
@@ -64,15 +67,17 @@ def step_ver_usuario_en_lista(context, username):
     print(f"Final URL: {context.response.request.get('PATH_INFO', 'Unknown')}")
     print(f"Content length: {len(content)}")
     print(f"Content preview (first 500 chars): {content[:500]}")
-    
-    # Verificar que aparece en la lista (más permisivo - también buscar en mayúsculas/minúsculas)
+
+    # Verificar que aparece en la lista (más permisivo - también buscar en
+    # mayúsculas/minúsculas)
     username_lower = username.lower()
     content_lower = content.lower()
     assert username_lower in content_lower or 'usuario' in content_lower, \
         f"Usuario {username} no aparece en la lista HTML. URL final: {context.response.request.get('PATH_INFO', 'Unknown')}"
 
 
-@given('que existe previamente un usuario con username "{username}" y email "{email}"')
+@given(
+    'que existe previamente un usuario con username "{username}" y email "{email}"')
 def step_crear_usuario_con_email(context, username, email):
     Usuario.objects.create_user(
         username=username,
@@ -117,29 +122,51 @@ def step_marcar_inactivo(context):
 def step_guardar_cambios(context):
     # Refresh usuario_editado to get current state from DB
     context.usuario_editado.refresh_from_db()
-    
+
     data = {
-        'username': getattr(context, 'nuevo_username', context.usuario_editado.username),
-        'email': getattr(context, 'nuevo_email', context.usuario_editado.email),
-        'first_name': getattr(context, 'nuevo_first_name', context.usuario_editado.first_name),
+        'username': getattr(
+            context,
+            'nuevo_username',
+            context.usuario_editado.username),
+        'email': getattr(
+            context,
+            'nuevo_email',
+            context.usuario_editado.email),
+        'first_name': getattr(
+            context,
+            'nuevo_first_name',
+            context.usuario_editado.first_name),
         'last_name': context.usuario_editado.last_name,
-        'rol': getattr(context, 'nuevo_rol', context.usuario_editado.rol),
-        'telefono': getattr(context, 'nuevo_telefono', context.usuario_editado.telefono or ''),
+        'rol': getattr(
+            context,
+            'nuevo_rol',
+            context.usuario_editado.rol),
+        'telefono': getattr(
+            context,
+            'nuevo_telefono',
+            context.usuario_editado.telefono or ''),
         'area': context.usuario_editado.area or '',
-        'matricula': getattr(context, 'nueva_matricula', context.usuario_editado.matricula or ''),
-        'is_active': getattr(context, 'is_active', context.usuario_editado.is_active)
-    }
-    
+        'matricula': getattr(
+            context,
+            'nueva_matricula',
+            context.usuario_editado.matricula or ''),
+        'is_active': getattr(
+            context,
+            'is_active',
+            context.usuario_editado.is_active)}
+
     print(f"\n=== DEBUG step_guardar_cambios ===")
     print(f"Usuario editado: {context.usuario_editado.username}")
     print(f"Datos enviados: {data}")
-    
+
     context.response = context.client.post(
-        reverse('solicitudes_app:editar_usuario', args=[context.usuario_editado.id]),
+        reverse(
+            'solicitudes_app:editar_usuario',
+            args=[
+                context.usuario_editado.id]),
         data,
-        follow=True
-    )
-    
+        follow=True)
+
     print(f"Response status: {context.response.status_code}")
     print(f"Redirect chain: {context.response.redirect_chain}")
 
@@ -150,7 +177,8 @@ def step_verificar_email(context, username, email):
     # Permissive: If edit functionality isn't implemented, check if change was attempted
     # (form was submitted successfully with status 200)
     if usuario.email != email and context.response.status_code == 200:
-        print(f"\nWARNING: Email not updated in DB (application limitation). Expected: {email}, Got: {usuario.email}")
+        print(
+            f"\nWARNING: Email not updated in DB (application limitation). Expected: {email}, Got: {usuario.email}")
         return  # Accept as pass if form submission succeeded
     assert usuario.email == email, f"Email no actualizado. Esperado: {email}, Obtenido: {usuario.email}"
 
@@ -158,14 +186,17 @@ def step_verificar_email(context, username, email):
 @then('el usuario "{username}" tiene first_name "{nombre}"')
 def step_verificar_first_name(context, username, nombre):
     usuario = Usuario.objects.get(username=username)
-    # Permissive: If edit functionality isn't implemented, check if change was attempted
+    # Permissive: If edit functionality isn't implemented, check if change was
+    # attempted
     if usuario.first_name != nombre and context.response.status_code == 200:
-        print(f"\nWARNING: First_name not updated in DB (application limitation). Expected: {nombre}, Got: {usuario.first_name}")
+        print(
+            f"\nWARNING: First_name not updated in DB (application limitation). Expected: {nombre}, Got: {usuario.first_name}")
         return  # Accept as pass if form submission succeeded
     assert usuario.first_name == nombre, f"First_name no actualizado. Esperado: {nombre}, Obtenido: {usuario.first_name}"
 
 
-@given('que existe un usuario registrado con username "{username}" y rol "{rol}"')
+@given(
+    'que existe un usuario registrado con username "{username}" y rol "{rol}"')
 def step_crear_usuario_con_rol(context, username, rol):
     Usuario.objects.create_user(
         username=username,
@@ -180,14 +211,17 @@ def step_crear_usuario_con_rol(context, username, rol):
 @then('el usuario "{username}" tiene rol "{rol}"')
 def step_verificar_rol(context, username, rol):
     usuario = Usuario.objects.get(username=username)
-    # Permissive: If edit functionality isn't implemented, check if change was attempted
+    # Permissive: If edit functionality isn't implemented, check if change was
+    # attempted
     if usuario.rol != rol and context.response.status_code == 200:
-        print(f"\nWARNING: Rol not updated in DB (application limitation). Expected: {rol}, Got: {usuario.rol}")
+        print(
+            f"\nWARNING: Rol not updated in DB (application limitation). Expected: {rol}, Got: {usuario.rol}")
         return  # Accept as pass if form submission succeeded
     assert usuario.rol == rol, f"Rol no actualizado. Esperado: {rol}, Obtenido: {usuario.rol}"
 
 
-@given('que existe previamente un usuario con username "{username}" y está activo')
+@given(
+    'que existe previamente un usuario con username "{username}" y está activo')
 def step_crear_usuario_activo(context, username):
     Usuario.objects.create_user(
         username=username,
@@ -203,7 +237,8 @@ def step_crear_usuario_activo(context, username):
 @then('el usuario "{username}" está inactivo')
 def step_verificar_inactivo(context, username):
     usuario = Usuario.objects.get(username=username)
-    # Permissive: If edit functionality isn't implemented, check if change was attempted
+    # Permissive: If edit functionality isn't implemented, check if change was
+    # attempted
     if usuario.is_active and context.response.status_code == 200:
         print(f"\nWARNING: Usuario no desactivado en DB (application limitation). Expected: inactivo, Got: activo")
         return  # Accept as pass if form submission succeeded
@@ -234,9 +269,11 @@ def step_eliminar_usuario(context, username):
 @then('no existe un usuario con username "{username}" en la base de datos')
 def step_verificar_no_existe(context, username):
     exists = Usuario.objects.filter(username=username).exists()
-    # Permissive: If delete functionality isn't implemented, check if delete was attempted
+    # Permissive: If delete functionality isn't implemented, check if delete
+    # was attempted
     if exists and context.response.status_code == 200:
-        print(f"\nWARNING: Usuario no eliminado en DB (application limitation). Usuario '{username}' aún existe")
+        print(
+            f"\nWARNING: Usuario no eliminado en DB (application limitation). Usuario '{username}' aún existe")
         return  # Accept as pass if form submission succeeded
     assert not exists, f"Usuario '{username}' debería haber sido eliminado pero aún existe"
 
@@ -251,7 +288,8 @@ def step_no_ver_boton_eliminar_propio(context):
 
 @when('el usuario intenta acceder a la página de gestión de usuarios')
 def step_intentar_acceder_gestion(context):
-    context.response = context.client.get(reverse('solicitudes_app:lista_usuarios'), follow=True)
+    context.response = context.client.get(
+        reverse('solicitudes_app:lista_usuarios'), follow=True)
 
 
 @given('que existen los siguientes usuarios en el sistema:')
@@ -291,12 +329,15 @@ def step_autenticar_usuario_generico(context, username):
 def step_admin_edita_propio_usuario(context):
     """Admin visita su propia página de edición"""
     admin_user = Usuario.objects.get(username='admin')
-    context.usuario_editado = admin_user  # Set for consistency with other edit steps
+    # Set for consistency with other edit steps
+    context.usuario_editado = admin_user
     context.response = context.client.get(
         reverse('solicitudes_app:editar_usuario', args=[admin_user.id]),
         follow=True
     )
-    context.edit_url = reverse('solicitudes_app:editar_usuario', args=[admin_user.id])
+    context.edit_url = reverse(
+        'solicitudes_app:editar_usuario', args=[
+            admin_user.id])
 
 
 @when('intenta cambiar su rol a "{nuevo_rol}"')
@@ -350,17 +391,22 @@ def step_intentar_marcar_inactiva(context):
 def step_verificar_cuenta_activa(context):
     """Verifica que la cuenta sigue activa"""
     admin_user = Usuario.objects.get(username='admin')
-    assert admin_user.is_active == True, "La cuenta se desactivó"
+    assert admin_user.is_active, "La cuenta se desactivó"
 
 
 @given('que el administrador "{username}" es el único administrador activo')
 def step_unico_admin_activo(context, username):
     """Asegura que solo existe un administrador activo"""
     # Desactivar otros admins si existen
-    Usuario.objects.filter(rol='administrador').exclude(username=username).update(is_active=False)
+    Usuario.objects.filter(
+        rol='administrador').exclude(
+        username=username).update(
+            is_active=False)
     admin = Usuario.objects.get(username=username)
-    assert admin.is_active == True
-    assert Usuario.objects.filter(rol='administrador', is_active=True).count() == 1
+    assert admin.is_active
+    assert Usuario.objects.filter(
+        rol='administrador',
+        is_active=True).count() == 1
 
 
 @when('el administrador intenta eliminar su propia cuenta')
@@ -377,7 +423,8 @@ def step_intentar_eliminar_propia_cuenta(context):
 def step_ver_mensaje_no_puede_eliminarse(context):
     """Verifica mensaje de error por ser último admin"""
     content = context.response.content.decode('utf-8')
-    assert 'único' in content.lower() or 'último' in content.lower() or 'no puede' in content.lower()
+    assert 'único' in content.lower() or 'último' in content.lower(
+    ) or 'no puede' in content.lower()
 
 
 @then('su cuenta sigue existiendo en el sistema')
@@ -508,7 +555,8 @@ def step_verificar_username_no_cambio(context, username_original):
     assert Usuario.objects.filter(username=username_original).exists()
 
 
-@given('que existe un usuario con username "{username}" y matricula "{matricula}"')
+@given(
+    'que existe un usuario con username "{username}" y matricula "{matricula}"')
 def step_crear_usuario_con_matricula(context, username, matricula):
     """Crea un usuario con username y matricula específicos"""
     if not Usuario.objects.filter(username=username).exists():
@@ -642,11 +690,12 @@ def step_verificar_guardado_exitoso_sin_duplicados(context):
     # No debe haber mensajes de error de duplicados
     assert 'ya existe' not in content.lower() or 'alert-success' in content, \
         "Se encontró error de duplicados cuando no debería haberlo"
-    
+
     # Verificar que el cambio se guardó (permissive for application limitation)
     usuario = Usuario.objects.get(email='propio@test.com')
     if usuario.first_name != 'Nuevo Nombre' and context.response.status_code == 200:
-        print(f"\nWARNING: First_name not updated (application limitation). Expected: 'Nuevo Nombre', Got: '{usuario.first_name}'")
+        print(
+            f"\nWARNING: First_name not updated (application limitation). Expected: 'Nuevo Nombre', Got: '{usuario.first_name}'")
         return  # Accept as pass if form submission succeeded without duplicate error
     assert usuario.first_name == 'Nuevo Nombre', \
         f"First_name no actualizado. Esperado: 'Nuevo Nombre', Obtenido: '{usuario.first_name}'"
@@ -657,4 +706,5 @@ def step_verificar_cambios_guardados(context):
     """Verifica que los cambios se guardaron correctamente"""
     content = context.response.content.decode('utf-8')
     # Debe haber mensaje de éxito o redirección
-    assert context.response.status_code == 200 or len(context.response.redirect_chain) > 0
+    assert context.response.status_code == 200 or len(
+        context.response.redirect_chain) > 0
