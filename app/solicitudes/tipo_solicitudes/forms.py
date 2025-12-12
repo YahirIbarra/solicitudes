@@ -64,6 +64,7 @@ class FormCampoFormulario(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['formulario'].required = False
         self.fields['formulario'].widget = forms.HiddenInput()
+        self.fields['orden'].required = False
 
     def clean_orden(self):
         orden = self.cleaned_data.get("orden")
