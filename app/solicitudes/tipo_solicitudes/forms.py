@@ -76,7 +76,7 @@ class FormCampoFormulario(forms.ModelForm):
                 formulario=self.formulario,
                 orden=orden
             )
-
+            
             # Si estamos editando un campo → excluirlo de la validación
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)

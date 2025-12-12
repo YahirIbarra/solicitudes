@@ -91,7 +91,6 @@ def agregar_o_editar(request, tipo_solicitud_id=None):
     return render(request, 'agregar_solicitud.html', context)
 
 
-
 def solicitudes_por_tipo(solicitudes_filtradas):
     solicitudes = (
         solicitudes_filtradas
@@ -736,6 +735,32 @@ def eliminar_campo(request, campo_id):
     campo.delete()
     return redirect('crear_campos', formulario_id=formulario_id)
 
+@rol_requerido('administrador', 'control_escolar')
+@login_required
+def eliminar_tipo_solicitud(request, pk):
+    tipo = get_object_or_404(TipoSolicitud, pk=pk)
+
+    if request.method == "POST":
+        tipo.delete()
+        messages.success(request, f"Tipo de solicitud eliminado correctamente.")
+        return redirect("lista_tipo_solicitudes")
+
+    messages.error(request, "Operación no permitida.")
+    return redirect("lista_tipo_solicitudes")
+
+@rol_requerido('administrador', 'control_escolar')
+@login_required
+def eliminar_formulario_solicitud(request, pk):
+    formulario = get_object_or_404(FormularioSolicitud, pk=pk)
+
+    if request.method == "POST":
+        formulario.delete()
+        messages.success(request, f"Formulario eliminado correctamente.")
+        return redirect("lista_formularios")
+
+    messages.error(request, "Operación no permitida.")
+    return redirect("lista_formularios")
+
 
 # ----------------------
 #  VISTAS DE SOLICITUDES
@@ -926,6 +951,7 @@ def seguimiento_solicitud(request, solicitud_id):
         'estatus_dict': dict(ESTATUS)
     }
     return render(request, 'tipo_solicitudes/seguimiento_solicitud.html', context)
+
 
 @login_required
 def eliminar_tipo_solicitud(request, pk):
