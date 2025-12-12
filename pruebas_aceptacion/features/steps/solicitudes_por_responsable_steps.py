@@ -11,6 +11,7 @@ from tipo_solicitudes.models import (
 from django.contrib.auth import get_user_model
 
 
+
 @given("existen solicitudes asignadas a varios responsables")
 def existen_solicitudes_por_responsables(context):
     """Crea varias solicitudes con diferentes responsables para pruebas."""

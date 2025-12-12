@@ -15,3 +15,10 @@ db.sqlite3
 .vscode/
 tickets/
 progress.output
+
+# Ignorar todos los archivos .md excepto README.md
+*.md
+!README.md
+
+# Archivos de configuración local
+apache-jmeter-*/
