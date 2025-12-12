@@ -1,10 +1,13 @@
 from django.test import TestCase
-from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
-from django.core.files.uploadedfile import SimpleUploadedFile
-from tipo_solicitudes.models import CampoFormulario, RespuestaCampo, Solicitud, TipoSolicitud, FormularioSolicitud
-from tipo_solicitudes.forms import FormArchivoAdjunto, FormRespuestaCampo, FormSeguimientoSolicitud, FormSolicitud, FormTipoSolicitud, FormFormularioSolicitud, FormCampoFormulario
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
+from tipo_solicitudes.models import (
+    CampoFormulario, RespuestaCampo, Solicitud,
+    TipoSolicitud, FormularioSolicitud)
+from tipo_solicitudes.forms import (
+    FormArchivoAdjunto, FormRespuestaCampo, FormSeguimientoSolicitud,
+    FormSolicitud, FormTipoSolicitud, FormFormularioSolicitud,
+    FormCampoFormulario)
 
 Usuario = get_user_model()
 

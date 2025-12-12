@@ -1,5 +1,8 @@
 from django import forms
-from .models import ArchivoAdjunto, RespuestaCampo, SeguimientoSolicitud, TipoSolicitud, FormularioSolicitud, CampoFormulario, TIPO_CAMPO, Solicitud
+from .models import (ArchivoAdjunto, RespuestaCampo, SeguimientoSolicitud,
+                     TipoSolicitud, FormularioSolicitud, CampoFormulario,
+                     Solicitud)
+
 
 
 class FormTipoSolicitud(forms.ModelForm):

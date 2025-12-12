@@ -70,6 +70,8 @@ class Solicitud(models.Model):
     tipo_solicitud = models.ForeignKey(TipoSolicitud, on_delete=models.CASCADE)
     folio = models.CharField(max_length=20, unique=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    estatus = models.CharField(
+        max_length=1, choices=ESTATUS, default='1')  # <--- CAMPO AÑADIDO
 
     def __str__(self):
         return f"{self.folio}"
@@ -84,6 +86,7 @@ class Solicitud(models.Model):
         """Retorna el display name del estatus actual"""
         estatus_dict = dict(ESTATUS)
         return estatus_dict.get(self.estatus, 'Desconocido')
+
 
 
 class RespuestaCampo(models.Model):

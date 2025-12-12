@@ -196,7 +196,7 @@ def step_impl(context):
             By.CLASS_NAME, 'errorlist')
         assert len(error_elements) > 0, "No se encontró mensaje de error"
         time.sleep(1)
-    except:
+    except BaseException:
         assert '/tipo-solicitud/' in context.driver.current_url
         time.sleep(1)
 
@@ -219,7 +219,7 @@ def step_impl(context):
                 By.CLASS_NAME, 'errorlist')
             if len(error_elements) == 0:
                 assert '/tipo-solicitud/' in current_url and '/lista/' not in current_url
-        except:
+        except BaseException:
             pass
     time.sleep(0.5)
 

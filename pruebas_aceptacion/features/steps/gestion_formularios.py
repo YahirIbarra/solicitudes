@@ -74,7 +74,7 @@ def step_impl(context, nombre):
         select = Select(select_element)
         try:
             select.select_by_visible_text(tipo_nombre)
-        except:
+        except BaseException:
             options = [opt.text for opt in select.options]
             if options:
                 select.select_by_index(1)
@@ -115,7 +115,7 @@ def step_impl(context, tipo):
     try:
         select.select_by_visible_text(tipo)
         time.sleep(0.5)
-    except:
+    except BaseException:
         # Si no existe el tipo, crearlo directamente
         context.driver.get(f"{context.url}/tipo-solicitud/agregar/")
         time.sleep(1)
@@ -325,7 +325,7 @@ def step_impl(context):
         error_elements = context.driver.find_elements(
             By.CLASS_NAME, 'errorlist')
         assert len(error_elements) > 0, "No se encontró mensaje de error"
-    except:
+    except BaseException:
         pass
     time.sleep(1)
 
@@ -353,7 +353,7 @@ def step_impl(context):
         error_elements = context.driver.find_elements(
             By.CLASS_NAME, 'errorlist')
         assert len(error_elements) > 0, "No se encontró mensaje de error"
-    except:
+    except BaseException:
         pass
     time.sleep(1)
 
@@ -387,7 +387,7 @@ def step_impl(context, nombre):
     try:
         h1_element = context.driver.find_element(By.TAG_NAME, 'h1')
         titulo = h1_element.text
-    except:
+    except BaseException:
         titulo = context.driver.find_element(By.XPATH, "//h1 | //h2").text
 
     assert 'Configurar campos' in titulo or nombre in titulo, \

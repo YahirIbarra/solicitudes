@@ -9,6 +9,7 @@ from tipo_solicitudes.models import (
 Usuario = get_user_model()
 
 
+
 class TestSmokeTest(TestCase):
 
     # def test_hola_mundo(self):
@@ -36,7 +37,7 @@ class TestSmokeTest(TestCase):
             'nombre': 'Constancia',
             'descripcion': 'Constancia para servicio social'
         }
-        response = self.client.post('/tipo-solicitud/', data=data)
+        self.client.post('/tipo-solicitud/', data=data)
         self.assertEqual(1, TipoSolicitud.objects.count())
 
     def test_resultado_4_en_el_contexto(self):

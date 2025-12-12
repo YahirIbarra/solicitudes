@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from datetime import timedelta
 
 
+
 @given('existen solicitudes con tiempos de resolución calculables')
 def existen_solicitudes_calculables(context):
     """Crea solicitudes completadas con fechas de creación y resolución para calcular promedio."""
@@ -40,17 +41,18 @@ def existen_solicitudes_calculables(context):
             solicitud=solicitud,
             estatus='1',
             observaciones='Creada',
-            fecha_creacion=now - timedelta(hours=i+1)
+            fecha_creacion=now - timedelta(hours=i + 1)
         )
         # Crear seguimiento de terminada con fecha_terminacion
         seguimiento_terminado = SeguimientoSolicitud.objects.create(
             solicitud=solicitud,
             estatus='3',
             observaciones='Terminada',
-            fecha_creacion=now - timedelta(minutes=i*10)
+            fecha_creacion=now - timedelta(minutes=i * 10)
         )
         # Establecer fecha_terminacion manualmente
-        seguimiento_terminado.fecha_terminacion = now - timedelta(minutes=i*10)
+        seguimiento_terminado.fecha_terminacion = now - \
+            timedelta(minutes=i * 10)
         seguimiento_terminado.save()
 
 

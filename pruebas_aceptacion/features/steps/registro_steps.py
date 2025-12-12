@@ -36,7 +36,8 @@ def step_completar_formulario_admin(context):
     # Agregar telefono por defecto si no está presente (puede ser requerido)
     if 'telefono' not in context.form_data:
         context.form_data['telefono'] = '4921234567'
-    # Agregar matricula vacía para admin (no la usan pero puede ser campo del form)
+    # Agregar matricula vacía para admin (no la usan pero puede ser campo del
+    # form)
     if 'matricula' not in context.form_data:
         context.form_data['matricula'] = ''
     # Agregar campos de estado
@@ -65,13 +66,13 @@ def step_usuario_autenticado(context):
     # Solo verificar si la respuesta fue exitosa (200 o redirect)
     if hasattr(context.client, 'session'):
         # Si hay sesión, verificar autenticación
-        path_info = context.response.request.get('PATH_INFO', '')
-        if context.response.status_code == 200 and '/registro/' not in path_info:
-            # Solo verificar autenticación si salimos de la página de registro
-            assert '_auth_user_id' in context.client.session or (
-                context.response.status_code in [200, 302]
-            )
+        path = context.response.request.get('PATH_INFO', '')
+        if context.response.status_code == 200 and '/registro/' not in path:
+            # Solo verificar autenticación si salimos de registro
+            assert ('_auth_user_id' in context.client.session or
+                    context.response.status_code in [200, 302])
         # Si seguimos en registro, puede que haya error de validación
+        # (aceptable)
     else:
         # Sin sesión, solo verificar que no hubo error 500
         assert context.response.status_code != 500
@@ -94,13 +95,16 @@ def step_existe_usuario(context, username):
         errors_found = []
         for pattern in error_patterns:
             matches = re.findall(
-                pattern, context.registro_errors, re.IGNORECASE)
+                pattern,
+                context.registro_errors,
+                re.IGNORECASE)
             errors_found.extend([m.strip() for m in matches if m.strip()])
 
         # También verificar qué campos se enviaron
         sent_fields = list(context.form_data.keys())
 
-        error_msg = f"Usuario {username} no se creó. Campos enviados: {sent_fields}. "
+        error_msg = (f"Usuario {username} no se creó. "
+                     f"Campos enviados: {sent_fields}. ")
         if errors_found:
             unique_errors = list(set(errors_found))[:5]
             error_msg += f"Errores: {unique_errors}"
@@ -110,7 +114,8 @@ def step_existe_usuario(context, username):
     assert usuario_existe
 
 
-@then('existe en la base de datos un usuario con username "{username}" y rol "{rol}"')
+@then('existe en la base de datos un usuario con username '
+      '"{username}" y rol "{rol}"')
 def step_existe_usuario_con_rol(context, username, rol):
     usuario = Usuario.objects.get(username=username)
     assert usuario.rol == rol
@@ -230,8 +235,8 @@ def step_ver_error_especifico(context, mensaje_error):
     palabras_clave = mensaje_error.lower().split()
     encontradas = sum(
         1 for palabra in palabras_clave if palabra in content.lower())
-    assert encontradas >= len(
-        palabras_clave) // 2, f"No se encontró el error esperado: {mensaje_error}"
+    msg = f"No se encontró el error esperado: {mensaje_error}"
+    assert encontradas >= len(palabras_clave) // 2, msg
 
 
 @when('completa el formulario con last_name "{last_name}"')
@@ -298,7 +303,8 @@ def step_completar_alumno_con_matricula(context, matricula):
     }
 
 
-@when('completa el formulario con password1 "{password1}" y password2 "{password2}"')
+@when('completa el formulario con password1 "{password1}" '
+      'y password2 "{password2}"')
 def step_completar_con_passwords(context, password1, password2):
     """Completa formulario con contraseñas específicas"""
     context.form_data = {
@@ -314,7 +320,8 @@ def step_completar_con_passwords(context, password1, password2):
     }
 
 
-@then('ve un error indicando que la contraseña debe tener al menos 8 caracteres')
+@then('ve un error indicando que la contraseña debe tener '
+      'al menos 8 caracteres')
 def step_error_password_corta(context):
     """Verifica mensaje de error por contraseña muy corta"""
     content = context.response.content.decode('utf-8')

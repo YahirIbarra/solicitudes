@@ -1,3 +1,14 @@
+import csv
+import io
+import json
+import matplotlib.pyplot as plt
+from datetime import datetime
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Max
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, render, redirect
 from django.db.models import Max
 from .funcionalidad import FuncionesAvanzadas
 from .models import ESTATUS
@@ -19,11 +30,20 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.platypus import Paragraph, Spacer, PageBreak, Image
 from reportlab.lib.units import inch
-from reportlab.lib.enums import TA_CENTER
+from reportlab.platypus import (SimpleDocTemplate, Table, TableStyle,
+                                Paragraph, Spacer, PageBreak, Image)
+
+from .forms import (FormCampoFormulario, FormFormularioSolicitud,
+                    FormTipoSolicitud)
+from .models import (ESTATUS, RESPOSABLES, SeguimientoSolicitud, Solicitud,
+                     TipoSolicitud, ArchivoAdjunto, CampoFormulario,
+                     FormularioSolicitud, RespuestaCampo)
 import matplotlib
 matplotlib.use('Agg')  # Backend sin GUI
 
@@ -35,8 +55,6 @@ def bienvenida(request):
 
 @login_required
 def lista_solicitudes(request):
-    funciones_avanzadas = FuncionesAvanzadas()
-
     context = {
         'tipo_solicitudes': TipoSolicitud.objects.all(),
         'resultado': TipoSolicitud.objects.all().count
@@ -55,6 +73,7 @@ def agregar(request):
         form = FormTipoSolicitud()
 
     return render(request, 'agregar_solicitud.html', {'form': form})
+
 
 
 def solicitudes_por_tipo(solicitudes_filtradas):
@@ -425,6 +444,7 @@ def _agregar_resumen_final(elements, styles, solicitudes, hoy):
     )
     elements.append(Spacer(1, 0.1*inch))
     elements.append(fecha_generacion)
+
 
 
 @login_required
