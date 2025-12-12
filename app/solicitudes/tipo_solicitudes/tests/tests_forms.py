@@ -1,6 +1,9 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django import forms # Necesario para ValidationError y HiddenInput
+
+# Ajusta la ruta de importación si tus modelos y forms están en una app diferente
 from tipo_solicitudes.models import (
     CampoFormulario, RespuestaCampo, Solicitud,
     TipoSolicitud, FormularioSolicitud)
@@ -50,7 +53,7 @@ class TestFromTipoSolicitud(TestCase):
         }
         form = FormTipoSolicitud(data)
         self.assertEqual(form.errors['nombre'][0],
-                         'Este campo es obligatorio.')
+                             'Este campo es obligatorio.')
 
     def test_responsable_es_requerido_mensaje(self):
         data = {
@@ -60,7 +63,7 @@ class TestFromTipoSolicitud(TestCase):
         }
         form = FormTipoSolicitud(data)
         self.assertEqual(form.errors['responsable']
-                         [0], 'Este campo es obligatorio.')
+                             [0], 'Este campo es obligatorio.')
 
     def test_guarda_constancia(self):
         Usuario.objects.create_user(
@@ -75,7 +78,7 @@ class TestFromTipoSolicitud(TestCase):
         form.save()
 
         self.assertEqual(form.data.get('nombre'),
-                         TipoSolicitud.objects.first().nombre)
+                             TipoSolicitud.objects.first().nombre)
 
 
 class TestFormFormularioSolicitud(TestCase):
@@ -142,6 +145,14 @@ class TestFormCampoFormulario(TestCase):
             'cantidad_archivos': 1,
             'orden': 1
         }
+    
+    # --- Cobertura del método __init__ ---
+    def test_init_con_argumento_formulario(self):
+        form = FormCampoFormulario(formulario=self.formulario_solicitud)
+        
+        self.assertEqual(form.formulario, self.formulario_solicitud)
+        self.assertFalse(form.fields['formulario'].required)
+        self.assertIsInstance(form.fields['formulario'].widget, forms.HiddenInput)
 
     def test_campo_formulario_valido(self):
         form = FormCampoFormulario(data=self.valid_data_text)
@@ -179,6 +190,96 @@ class TestFormCampoFormulario(TestCase):
         form = FormCampoFormulario(data=data)
         self.assertFalse(form.is_valid())
         self.assertIn('formulario', form.errors)
+        
+    # --- Cobertura del método clean_orden ---
+    def test_clean_orden_duplicado_en_creacion_falla(self):
+        CampoFormulario.objects.create(
+            formulario=self.formulario_solicitud,
+            nombre='otro_campo',
+            etiqueta='Otro',
+            tipo='text',
+            orden=1
+        )
+        data = self.valid_data_text.copy() # Ya tiene orden=1
+        
+        form = FormCampoFormulario(data=data, formulario=self.formulario_solicitud) 
+        
+        self.assertFalse(form.is_valid())
+        self.assertIn('orden', form.errors)
+        self.assertIn("Ese número de orden ya está en uso", form.errors['orden'][0])
+
+    def test_clean_orden_permitido_en_edicion(self):
+        campo_existente = CampoFormulario.objects.create(
+            formulario=self.formulario_solicitud,
+            nombre='campo_a_editar',
+            etiqueta='Editar',
+            tipo='text',
+            orden=1,
+            requerido=True, 
+            cantidad_archivos=1 
+        )
+        
+        data = {
+            'formulario': self.formulario_solicitud.pk,
+            'nombre': 'campo_editado',
+            'etiqueta': 'Etiqueta Editada',
+            'tipo': 'text',
+            'requerido': True,
+            'opciones': '',
+            'cantidad_archivos': 1,
+            'orden': 1
+        }
+        
+        form = FormCampoFormulario(
+            data=data,
+            instance=campo_existente, 
+            formulario=self.formulario_solicitud
+        )
+        
+        if not form.is_valid():
+            print(f"Errores de validación: {form.errors}") 
+            
+        self.assertTrue(form.is_valid(), f"Debe ser válido al editarse a sí mismo. Errores: {form.errors}")
+        
+    def test_clean_orden_vacio_pasa(self):
+        data = self.valid_data_text.copy()
+        data['orden'] = None # Permite que pase la primera línea del clean_orden
+        
+        form = FormCampoFormulario(data=data)
+        self.assertTrue(form.is_valid())
+        
+    # --- Cobertura del método clean ---
+    def test_clean_select_sin_opciones_falla(self):
+        data = self.valid_data_text.copy()
+        data['tipo'] = 'select'
+        data['opciones'] = ''
+
+        form = FormCampoFormulario(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('__all__', form.errors)
+        self.assertIn("Debes agregar opciones separadas por comas para un campo select.", 
+                      form.errors['__all__'][0])
+
+    def test_clean_file_con_cantidad_cero_falla(self):
+        data = self.valid_data_text.copy()
+        data['tipo'] = 'file'
+        data['cantidad_archivos'] = 0
+
+        form = FormCampoFormulario(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('__all__', form.errors)
+        self.assertIn("Debe permitir al menos 1 archivo.", form.errors['__all__'][0])
+        
+    def test_clean_file_sin_cantidad_falla(self):
+        data = self.valid_data_text.copy()
+        data['tipo'] = 'file'
+        # Quitar el campo para simular que no viene en el POST, aunque el widget lo envía
+        del data['cantidad_archivos'] 
+
+        form = FormCampoFormulario(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('__all__', form.errors)
+        self.assertIn("Debe permitir al menos 1 archivo.", form.errors['__all__'][0])
 
 
 class TestFormSolicitud(TestCase):
@@ -198,7 +299,7 @@ class TestFormSolicitud(TestCase):
     def test_solicitud_valida(self):
         form = FormSolicitud(data=self.valid_data)
         self.assertTrue(form.is_valid(),
-                        f"Debería ser válido. Errores: {form.errors}")
+                             f"Debería ser válido. Errores: {form.errors}")
 
     def test_solicitud_invalida_por_tipo_solicitud_faltante(self):
         data = {}
@@ -212,7 +313,7 @@ class TestFormSolicitud(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('tipo_solicitud', form.errors)
         self.assertIn('Seleccione una opción válida. La opción seleccionada no es una de las disponibles.',
-                      form.errors['tipo_solicitud'][0])
+                             form.errors['tipo_solicitud'][0])
 
     def test_guardar_solicitud(self):
         form = FormSolicitud(data=self.valid_data)
@@ -270,7 +371,7 @@ class TestFormRespuestaCampo(TestCase):
 
         self.assertEqual(RespuestaCampo.objects.count(), 1)
         self.assertEqual(RespuestaCampo.objects.first().valor,
-                         'Respuesta de prueba')
+                             'Respuesta de prueba')
 
 
 class TestFormSeguimientoSolicitud(TestCase):
@@ -327,7 +428,7 @@ class TestFormArchivoAdjunto(TestCase):
     def test_archivo_adjunto_valido(self):
         form = FormArchivoAdjunto(data=self.valid_data, files=self.valid_files)
         self.assertTrue(form.is_valid(),
-                        f"Debería ser válido. Errores: {form.errors}")
+                             f"Debería ser válido. Errores: {form.errors}")
 
     def test_archivo_adjunto_invalido_sin_archivo(self):
         form = FormArchivoAdjunto(data=self.valid_data)
